@@ -1,0 +1,21 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "fedora/23-atomic-host"
+  config.ssh.forward_agent = true
+  config.ssh.insert_key = false
+  config.hostmanager.enabled = true
+
+  (1..4).each do |i|
+    config.vm.define vm_name = "f23-atomic-#{i}" do |host|
+      host.vm.hostname = vm_name
+      host.vm.provider :libvirt do |domain|
+        domain.memory = 2048
+        domain.cpus = 2
+      end #provider info
+      ip = "172.21.12.#{i+100}"
+      host.vm.network :private_network, :libvirt__network_name => "storage", :ip => ip
+    end #host info
+  end #each loop
+end #config info

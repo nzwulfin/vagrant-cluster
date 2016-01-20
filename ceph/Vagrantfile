@@ -1,0 +1,34 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  # some shared setup
+  config.vm.box = "fedora/23-cloud-base"
+  config.ssh.forward_agent = true
+  config.ssh.insert_key = false
+  config.hostmanager.enabled = true
+  #config.cache.scope = :box
+
+  # We need one Ceph admin machine to manage the cluster
+  config.vm.define "ceph-admin" do |admin|
+    admin.vm.hostname = "ceph-admin"
+    admin.vm.network :private_network, :libvirt__network_name => "storage", ip: "172.21.12.20"
+    admin.vm.provision :shell, :inline => "dnf install -yq ceph-deploy", :privileged => true
+  end #admin info
+
+  # The Ceph client will be our client machine to mount volumes and interact with the cluster
+#  config.vm.define "ceph-client" do |client|
+#    client.vm.hostname = "ceph-client"
+#    client.vm.network :private_network, :libvirt__network_name => "storage", ip: "172.21.12.11"
+#    client.vm.provision :shell, :inline => "dnf install -yq python", :privileged => true
+#  end
+
+  # We provision three nodes to be Ceph servers
+  (1..3).each do |i|
+    config.vm.define "ceph-server-#{i}" do |host|
+      host.vm.hostname = "ceph-server-#{i}"
+      host.vm.network :private_network, :libvirt__network_name => "storage", ip: "172.21.12.#{i+21}"
+      host.vm.provision :shell, :inline => "dnf install -yq python", :privileged => true
+    end #host info
+  end # each loop
+end #Vagrantfile
