@@ -1,0 +1,69 @@
+---
+# This playbook deploys a kubernetes cluster
+# with the default addons.
+
+- hosts: all
+  gather_facts: false
+  sudo: yes
+  roles:
+    - pre-ansible
+  tags:
+    - pre-ansible
+
+# Install etcd
+- hosts: etcd
+  name: Install etcd
+  sudo: yes
+  roles:
+    - etcd
+  tags:
+    - etcd
+
+# install flannel
+- hosts:
+    - etcd
+    - masters
+    - nodes
+  name: install flannel
+  sudo: yes
+  roles:
+    - flannel
+  tags:
+    - flannel
+
+# install kube master services
+- hosts: masters
+  name: install kube master services
+  sudo: yes
+  roles:
+    - master
+  tags:
+    - masters
+
+# launch addons, like dns
+- hosts: masters
+  name: launch addons, like dns
+  sudo: yes
+  roles:
+    - kubernetes-addons
+  tags:
+    - addons
+    - dns
+
+# install kubernetes on the nodes
+- hosts: nodes
+  name: install kubernetes on the nodes
+  sudo: yes
+  roles:
+    - node
+  tags:
+    - nodes
+
+# install kubernetes on the nodes
+- hosts: all
+  name: Finish demo launch
+  sudo: yes
+  roles:
+    - finish
+  tags:
+    - finish

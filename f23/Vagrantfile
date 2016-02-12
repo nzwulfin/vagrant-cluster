@@ -1,21 +1,65 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
+ansible_tags = ENV['ANSIBLE_TAGS']
 
 Vagrant.configure("2") do |config|
   config.vm.box = "fedora/23-atomic-host"
   config.ssh.forward_agent = true
   config.ssh.insert_key = false
   config.hostmanager.enabled = true
+  config.vm.synced_folder '.', '/home/vagrant/sync', disabled: true
 
-  (1..4).each do |i|
+  nodes = Array.new()
+  (2..4).each do |i|
     config.vm.define vm_name = "f23-atomic-#{i}" do |host|
       host.vm.hostname = vm_name
+      nodes.push(vm_name)
       host.vm.provider :libvirt do |domain|
-        domain.memory = 2048
+        #domain.memory = 2048
         domain.cpus = 2
       end #provider info
       ip = "172.21.12.#{i+100}"
       host.vm.network :private_network, :libvirt__network_name => "storage", :ip => ip
     end #host info
   end #each loop
+
+    groups = {
+      "etcd" => ["f23-atomic-master"],
+      "masters" => ["f23-atomic-master"],
+      "nodes" => nodes,
+      "all_groups:children" => ["etcd","masters","nodes"]
+    }
+
+    config.vm.define vm_name = "f23-atomic-master" do |host|
+      host.vm.hostname = vm_name
+      host.vm.provider :libvirt do |domain|
+        domain.memory = 2048
+        domain.cpus = 2
+      end #provider info
+      ip = "172.21.12.101"
+      host.vm.network :private_network, :libvirt__network_name => "storage", :ip => ip
+
+      if ansible_tags.nil?
+        # This set up the vagrant hosts before we run the main playbook
+        # Today this just creates /etc/hosts so machines can talk via their
+        # 'internal' IPs instead of the openstack public ip.
+        host.vm.provision :ansible do |ansible|
+          ansible.groups = groups
+          ansible.playbook = "./vagrant-ansible.yml"
+          ansible.limit = "all" #otherwise the metadata wont be there for ipv4?
+          ansible.raw_ssh_args = ['-o ControlMaster=no']
+        end
+
+        # This sets up both flannel and kube.
+        host.vm.provision :ansible do |ansible|
+          ansible.groups = groups
+          ansible.playbook = "../cluster.yml"
+          ansible.limit = "all" #otherwise the metadata wont be there for ipv4?
+          ansible.tags = ansible_tags
+          ansible.raw_ssh_args = ['-o ControlMaster=no']
+        end
+
+      end #if
+    end #host info
+
 end #config info

@@ -1,0 +1,10 @@
+---
+- name: Disable firewalls
+  command:  /usr/sbin/iptables -F
+
+- name: Launch atomicapp guestbook
+  command:  /usr/bin/atomic run projectatomic/guestbookgo-atomicapp
+  run_once: true
+  delegate_to: "{{ groups['masters'][0] }}"
+  tags:
+    - example
