@@ -1,1 +1,0 @@
-{"rsync":{"/vagrant":{"type":"rsync","guestpath":"/vagrant","hostpath":"/home/matt.micene/Projects/atomic/vms/vagrant/ceph","disabled":false,"owner":"vagrant","group":"vagrant"}}}
