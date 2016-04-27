@@ -1,4 +1,7 @@
 ---
+- include: coreos.yml
+  when: ansible_distribution == "CoreOS"
+
 - include: packageManagerInstall.yml
   when: source_type == "packageManager"
   tags:
@@ -20,7 +23,7 @@
 
 - name: add cap_net_bind_service to kube-apiserver
   capabilities: path=/usr/bin/kube-apiserver capability=cap_net_bind_service=ep state=present
-  when: not is_atomic
+  when: not is_atomic and ansible_distribution != "CoreOS"
 
 - name: Enable apiserver
   service: name=kube-apiserver enabled=yes state=started
@@ -69,6 +72,24 @@
 
 - name: write the kubecfg (auth) file for kubectl
   template: src=kubectl.kubeconfig.j2 dest={{ kube_config_dir }}/kubectl.kubeconfig
+
+# Enable kubelet on master only when OpenContrail is in use; see
+# https://github.com/kubernetes/contrib/pull/183
+- name: write the config files for kubelet
+  template: src=kubelet.j2 dest={{ kube_config_dir }}/kubelet
+  notify:
+    - restart kubelet
+  when: networking == 'opencontrail'
+
+- name: Enable kubelet
+  service: name=kubelet enabled=yes state=started
+  when: networking == 'opencontrail'
+
+- name: write the delay-master-services target
+  copy: src=delay-master-services.target dest=/etc/systemd/system/ mode=0644
+
+- name: Enable delay-master-services
+  service: name=delay-master-services.target enabled=yes
 
 - include: firewalld.yml
   when: has_firewalld

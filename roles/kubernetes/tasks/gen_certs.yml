@@ -7,7 +7,7 @@
   with_items:
     - openssl
     - curl
-  when: not is_atomic
+  when: not is_atomic and ansible_distribution != "CoreOS"
 
 #- name: Get create ca cert script from Kubernetes
 #  get_url:
@@ -35,6 +35,8 @@
     SERVICE_CLUSTER_IP_RANGE: "{{ kube_service_addresses }}"
     CERT_DIR: "{{ kube_cert_dir }}"
     CERT_GROUP: "{{ kube_cert_group }}"
+    HTTP_PROXY: "{{ http_proxy|default('') }}"
+    HTTPS_PROXY: "{{ https_proxy|default('') }}"
 
 - name: Verify certificate permissions
   file:

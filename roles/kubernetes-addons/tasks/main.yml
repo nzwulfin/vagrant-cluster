@@ -1,9 +1,17 @@
 ---
+- name: Set python_bin fact for CoreOS
+  set_fact:
+    python_bin: "/opt/bin/python"
+  when: ansible_distribution == "CoreOS"
+  set_fact:
+    python_bin: "python"
+  when: python_bin is not defined
+
 - name: Assures addons dir exists
   file: path={{ kube_addons_dir }} state=directory
 
 - include: generic-install.yml
-  when: not is_atomic
+  when: not is_atomic and ansible_distribution != "CoreOS"
 
 - name: Assures local addon dir exists
   local_action: file
@@ -16,6 +24,10 @@
     url=https://raw.githubusercontent.com/GoogleCloudPlatform/kubernetes/master/cluster/saltbase/salt/kube-addons/namespace.yaml
     dest="{{ kube_config_dir }}/addons/"
     force=yes
+    validate_certs=False
+  environment:
+    http_proxy: "{{ http_proxy|default('') }}"
+    https_proxy: "{{ https_proxy|default('') }}"
 
 - include: dns.yml
   when: dns_setup
@@ -28,6 +40,9 @@
 
 - include: kube-ui.yml
   when: kube-ui
+
+- include: kube-dash.yml
+  when: kube-dash
 
 #- name: Get kube-addons script from Kubernetes
 #  get_url:
@@ -65,6 +80,17 @@
   template: src=kube-addons.service.j2 dest=/etc/systemd/system/kube-addons.service
   notify:
     - reload and restart kube-addons
+  when: not (ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 15)
+
+- name: Install kube-addons upstart configuration
+  template: src=kube-addons.upstart.j2 dest=/etc/init/kube-addons.conf
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version|int < 15
 
 - name: Enable and start kube addons
-  service: name=kube-addons.service enabled=yes state=started
+  service: name=kube-addons enabled=yes state=started
+  when: not is_atomic
+
+- include: atomic-addons.yml
+  when: is_atomic
+
+

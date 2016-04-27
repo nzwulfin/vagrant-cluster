@@ -3,6 +3,8 @@
   command: systemctl --system daemon-reload
   notify:
     - restart kube-addons
+  when: not is_atomic
 
 - name: restart kube-addons
   service: name=kube-addons state=restarted
+  when: not is_atomic

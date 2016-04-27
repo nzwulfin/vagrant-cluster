@@ -1,9 +1,9 @@
 {% macro initial_cluster() -%}
 {% for host in groups[etcd_peers_group] -%}
 {% if loop.last -%}
-{{ hostvars[host]['ansible_hostname'] }}={{ etcd_peer_url_scheme }}://{{ hostvars[host]['ansible_hostname'] }}:{{ etcd_peer_port }}
+{{ hostvars[host]['ansible_hostname'] }}={{ etcd_peer_url_scheme }}://{{ hostvars[host]['ansible_default_ipv4.address'] }}:{{ etcd_peer_port }}
 {%- else -%}
-{{ hostvars[host]['ansible_hostname'] }}={{ etcd_peer_url_scheme }}://{{ hostvars[host]['ansible_hostname'] }}:{{ etcd_peer_port }},
+{{ hostvars[host]['ansible_hostname'] }}={{ etcd_peer_url_scheme }}://{{ hostvars[host]['ansible_default_ipv4.address'] }}:{{ etcd_peer_port }},
 {%- endif -%}
 {% endfor -%}
 {% endmacro -%}
@@ -18,7 +18,7 @@ ETCD_DATA_DIR={{ etcd_data_dir }}
 #ETCD_SNAPSHOT_COUNTER="10000"
 #ETCD_HEARTBEAT_INTERVAL="100"
 #ETCD_ELECTION_TIMEOUT="1000"
-ETCD_LISTEN_CLIENT_URLS={{ etcd_listen_client_urls }}
+ETCD_LISTEN_CLIENT_URLS="{{ etcd_listen_client_urls }}"
 #ETCD_MAX_SNAPSHOTS="5"
 #ETCD_MAX_WALS="5"
 #ETCD_CORS=""

@@ -3,7 +3,7 @@
   command:  /usr/sbin/iptables -F
 
 - name: Launch atomicapp guestbook
-  command:  /usr/bin/atomic run projectatomic/guestbookgo-atomicapp
+  command:  /usr/bin/atomic run projectatomic/guestbookgo-app
   run_once: true
   delegate_to: "{{ groups['masters'][0] }}"
   tags:

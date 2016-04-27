@@ -10,7 +10,7 @@
 
 - name: DNS | Download skydns-rc.yaml file from Kubernetes repo
   local_action: get_url
-    url=https://raw.githubusercontent.com/GoogleCloudPlatform/kubernetes/master/cluster/addons/dns/skydns-rc.yaml.in
+    url=https://raw.githubusercontent.com/kubernetes/kubernetes/a3c00aadd5da91288cca856dabbefbc9f261be69/cluster/addons/dns/skydns-rc.yaml.in
     dest="{{ local_temp_addon_dir }}/dns/skydns-rc.yaml.j2"
     force=yes
   sudo: no
