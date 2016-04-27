@@ -1,0 +1,29 @@
+---
+  - name: Create system services namespace
+    command: kubectl create -f {{ kube_addons_dir }}/namespace.yaml
+    ignore_errors: yes
+
+  - name: Start DNS pod
+    command: kubectl create -f {{ kube_addons_dir }}/dns
+    when: dns_setup
+    ignore_errors: yes
+
+  - name: Star cluster monitoring pod
+    command: kubectl create -f {{ kube_addons_dir }}/cluster-monitoring
+    when: cluster_monitoring
+    ignore_errors: yes
+
+  - name: Start cluster logging pod
+    command: kubectl create -f {{ kube_addons_dir }}/cluster-logging
+    when: cluster_logging
+    ignore_errors: yes
+
+  - name: Start kube UI pod
+    command: kubectl create -f {{ kube_addons_dir }}/kube-ui
+    when: kube-ui
+    ignore_errors: yes
+
+  - name: Start kube Dashboard pod
+    command: kubectl create -f {{ kube_addons_dir }}/kube-dash
+    when: kube-dash
+    ignore_errors: yes
