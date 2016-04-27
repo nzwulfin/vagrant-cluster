@@ -1,1 +1,0 @@
-{"rsync":{"/home/vagrant/sync":{"type":"rsync","guestpath":"/home/vagrant/sync","hostpath":"/home/matt.micene/Projects/atomic/vms/vagrant/f23","disabled":false,"owner":"vagrant","group":"vagrant"}}}
